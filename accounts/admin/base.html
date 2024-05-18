@@ -1,0 +1,10 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+    {{ block.super }}
+    {% if request.is_superuser %}
+        <button>¡Eres un superusuario!</button>
+    {% else %}
+        <button>No eres un superusuario</button>
+    {% endif %}
+{% endblock %}

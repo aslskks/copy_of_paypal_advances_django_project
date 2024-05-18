@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+</head>
+<body>
+    <h1>Admin Dashboard</h1>
+    
+    <h2>User Profiles</h2>
+    <ul>
+        {% for user_profile in user_profiles %}
+        <li>{{ user_profile }}</li>
+        {% endfor %}
+    </ul>
+    
+    <h2>Transactions</h2>
+    <ul>
+        {% for transaction in transactions %}
+        <li>{{ transaction }}</li>
+        {% endfor %}
+    </ul>
+    
+    <!-- Add more content as needed -->
+</body>
+</html>
