@@ -86,6 +86,7 @@ DATABASES = {
 }
 
 
+
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
@@ -112,6 +113,7 @@ LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
 
+
 USE_I18N = True
 
 USE_TZ = True
@@ -135,7 +137,3 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv('davikenat@gmail.com')  # Reemplaza con tu correo de Gmail
 EMAIL_HOST_PASSWORD = os.getenv('ulqa uhun xzeb zisd')  # Reemplaza con tu contraseña de aplicación
-
-LOGIN_EXEMPT_URLS = [
-    '/adm/',  # Esta es la URL a la que deseas que los usuarios accedan sin necesidad de iniciar sesión
-]

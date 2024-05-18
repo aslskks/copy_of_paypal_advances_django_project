@@ -17,14 +17,12 @@ class UserProfileForm(forms.ModelForm):
 
 from django import forms
 from django.contrib.auth.models import User
-from .models import Transaction  # Ajusta la importación del modelo Transaction
-from django import forms
-from .models import Transaction  # Assuming the models.py file is in the same directory
+from .models import Transaction   # Assuming the models.py file is in the same directory
 
 class TransactionForm(forms.ModelForm):
     class Meta:
         model = Transaction
-        fields = ['sender', 'receiver', 'amount', 'date']
+        fields = ['receiver', 'amount', 'sender']
 from django.db import models
 
 class Transaction(models.Model):

@@ -10,7 +10,16 @@ class CustomUserAdmin(UserAdmin):
     ordering = ('username',)
 
 admin.site.register(CustomUser, CustomUserAdmin)
-admin.site.register(BankAccount)
+
+class BankAccountAdmin(admin.ModelAdmin):
+    list_display = ('owner_name', 'account_number', 'balance', 'created_at')  # Reemplaza con campos válidos del modelo
+
+    def owner_name(self, obj):
+        return obj.owner.get_full_name()  # Esto asume que el propietario de la cuenta es un modelo de usuario con un método get_full_name()
+
+    owner_name.short_description = 'Owner Name'  # Esto es opcional para dar un nombre descriptivo a la columna
+
+admin.site.register(BankAccount, BankAccountAdmin)
 
 class SpecialUserGroupAdmin(admin.ModelAdmin):
     # Configuración del admin para el grupo especial
