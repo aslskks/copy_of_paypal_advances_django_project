@@ -8,4 +8,4 @@ class Transaction(models.Model):
     date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.sender.user.username} -> {self.receiver.user.username} (${self.amount})'
+        return f'{self.sender.username} -> {self.receiver.username} (${self.amount})'

@@ -18,17 +18,13 @@ class UserProfileForm(forms.ModelForm):
 from django import forms
 from django.contrib.auth.models import User
 from .models import Transaction  # Ajusta la importación del modelo Transaction
+from django import forms
+from .models import Transaction  # Assuming the models.py file is in the same directory
 
-class TransferForm(forms.ModelForm):
+class TransactionForm(forms.ModelForm):
     class Meta:
         model = Transaction
-        fields = ['sender', 'receiver', 'amount']
-
-
-    def __init__(self, user, *args, **kwargs):
-        super(TransferForm, self).__init__(*args, **kwargs)
-        self.fields['receiver'].queryset = User.objects.exclude(id=user.id)
-
+        fields = ['sender', 'receiver', 'amount', 'date']
 from django.db import models
 
 class Transaction(models.Model):
