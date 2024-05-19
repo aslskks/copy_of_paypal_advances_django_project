@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>You Have Received a Transfer</title>
+</head>
+<body>
+    <h1>You Have Received a Transfer</h1>
+    <p>Dear {{ transaction.receiver.user.username }},</p>
+    <p>You have received ${{ transaction.amount }} from {{ transaction.sender.user.username }}.</p>
+    <img src="path/to/transfer_image.png" alt="Transfer Image">
+    <p>Thank you for using our service.</p>
+</body>
+</html>

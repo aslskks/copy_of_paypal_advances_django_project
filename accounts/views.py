@@ -1,6 +1,6 @@
 # En tu archivo views.py
 
-from django.shortcuts import render, redirect
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 
@@ -13,7 +13,7 @@ def adm_dashboard(request):
         return render(request, 'accounts/adm_dashboard.html')
 
 
-from django.shortcuts import render, redirect
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.urls import reverse
@@ -65,16 +65,26 @@ def admin_redirect(request):
     else:
         return redirect('user_dashboard') 
 
-from django import forms
-from django.contrib.auth.models import User
+from transactions.forms import TransferForm
 from accounts.models import UserProfile  # Corrige la importación aquí
 from .models import Transaction
 
-class TransferForm(forms.ModelForm):
-    class Meta:
-        model = Transaction
-        fields = ['receiver', 'amount']
+# accounts/views.py
 
-    def __init__(self, user, *args, **kwargs):
-        super(TransferForm, self).__init__(*args, **kwargs)
-        self.fields['receiver'].queryset = User.objects.exclude(id=user.id)
+# accounts/views.py
+
+from django.shortcuts import render, redirect
+from transactions.forms import TransferForm
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def transfer_view(request):
+    if request.method == 'POST':
+        form = TransferForm(user=request.user.userprofile, data=request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('success_url')  # Cambia 'success_url' por la URL de destino después de un éxito
+    else:
+        form = TransferForm(user=request.user.userprofile)
+    
+    return render(request, 'transfer.html', {'form': form})

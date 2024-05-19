@@ -1,69 +1,67 @@
-from PIL import Image, ImageDraw, ImageFont
-from django.core.files.base import ContentFile
-import io
+# transactions/views.py
+
 from django.shortcuts import render, redirect
+from django.core.mail import send_mail
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from .forms import TransactionForm
-from .models import Transaction
-from accounts.models import BankAccount
-from accounts.utils import send_transaction_email
-
-def generate_transaction_image(sender_name, receiver_name, amount):
-    # Crear una imagen en blanco
-    img = Image.new('RGB', (400, 200), color='white')
-
-    # Crear un objeto de dibujo
-    draw = ImageDraw.Draw(img)
-
-    # Especificar la fuente y el tamaño del texto
-    font = ImageFont.truetype('arial.ttf', size=20)
-
-    # Escribir el texto en la imagen
-    draw.text((20, 20), f'¡Has enviado {amount} a {receiver_name}!', fill='black', font=font)
-    draw.text((20, 50), f'Receptor: {receiver_name}', fill='black', font=font)
-    draw.text((20, 80), f'Cantidad: ${amount}', fill='black', font=font)
-    draw.text((20, 110), f'Transferido por: {sender_name}', fill='black', font=font)
-
-    return img
+from transactions.forms import TransferForm
+from transactions.models import Transaction
+from accounts.models import UserProfile
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.contrib import messages
 
 @login_required
-def transfer_money(request):
-    if request.user.groups.filter(name='Special Users').exists():
-        if request.method == 'POST':
-            form = TransactionForm(request.POST, request.FILES)
-            if form.is_valid():
-                transaction = form.save(commit=False)
-                sender_account = request.user.bankaccount
+def transfer_view(request):
+    if request.method == 'POST':
+        form = TransferForm(user=request.user.userprofile, data=request.POST)
+        if form.is_valid():
+            transaction = form.save(commit=False)
+            transaction.sender = request.user.userprofile
+            
+            # Update balances
+            if transaction.sender.balance >= transaction.amount:
+                transaction.sender.balance -= transaction.amount
+                transaction.receiver.balance += transaction.amount
                 
-                if sender_account.balance >= transaction.amount:
-                    receiver_account = transaction.receiver
-                    
-                    if sender_account == receiver_account:
-                        return render(request, 'error.html', {'message': 'No puedes transferir dinero a la misma cuenta.'})
-                    
-                    sender_account.balance -= transaction.amount
-                    receiver_account.balance += transaction.amount
-                    sender_account.save()
-                    receiver_account.save()
-                    transaction.sender = sender_account
-                    transaction.save()
+                transaction.sender.save()
+                transaction.receiver.save()
+                transaction.save()
 
-                    # Enviar notificaciones por correo electrónico
-                    send_transaction_email(sender_account.user.email, 'Transferencia Exitosa', f'Has transferido {transaction.amount} a la cuenta {receiver_account.account_number}.')
-                    send_transaction_email(receiver_account.user.email, 'Has Recibido una Transferencia', f'Has recibido {transaction.amount} de la cuenta {sender_account.account_number}.')
+                # Send email notifications
+                send_transfer_email(transaction)
 
-                    # Generar la imagen de la transacción
-                    transaction_image = generate_transaction_image(sender_account.user.username, receiver_account.user.username, transaction.amount)
-
-                    # Convertir la imagen a formato PNG y guardarla en un campo de imagen del modelo de transacción
-                    buffer = io.BytesIO()
-                    transaction_image.save(buffer, format='PNG')
-                    image_file = ContentFile(buffer.getvalue())
-                    transaction.photo.save(f'transaction_{transaction.id}.png', image_file)
-
-                    return redirect('success')
-        else:
-            form = TransactionForm()
-        return render(request, 'transfer.html', {'form': form})
+                messages.success(request, "Transfer completed successfully.")
+                return redirect('success_url')  # Replace with your success URL
+            else:
+                messages.error(request, "Insufficient funds for the transfer.")
     else:
-        return render(request, 'error.html', {'message': 'No tienes permiso para realizar esta acción.'})
+        form = TransferForm(user=request.user.userprofile)
+    
+    return render(request, 'transfer.html', {'form': form})
+
+def send_transfer_email(transaction):
+    sender_subject = "Transfer Confirmation"
+    receiver_subject = "You Have Received a Transfer"
+    
+    sender_html_message = render_to_string('email_sender.html', {'transaction': transaction})
+    sender_plain_message = strip_tags(sender_html_message)
+    
+    receiver_html_message = render_to_string('email_receiver.html', {'transaction': transaction})
+    receiver_plain_message = strip_tags(receiver_html_message)
+    
+    send_mail(
+        sender_subject,
+        sender_plain_message,
+        settings.DEFAULT_FROM_EMAIL,
+        [transaction.sender.user.email],
+        html_message=sender_html_message,
+    )
+    
+    send_mail(
+        receiver_subject,
+        receiver_plain_message,
+        settings.DEFAULT_FROM_EMAIL,
+        [transaction.receiver.user.email],
+        html_message=receiver_html_message,
+    )
