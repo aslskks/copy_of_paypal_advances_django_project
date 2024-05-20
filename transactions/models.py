@@ -1,4 +1,3 @@
-# transactions/models.py
 from django.db import models
 from django.core.exceptions import ValidationError
 from accounts.models import UserProfile
@@ -6,6 +5,7 @@ from django.utils import timezone
 
 class BankAccount(models.Model):
     owner = models.ForeignKey('accounts.UserProfile', on_delete=models.CASCADE)
+    #crea aqui el account
     balance = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
@@ -21,10 +21,10 @@ class Transaction(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     date = models.DateTimeField(auto_now_add=True)
     # El campo account se hace opcional permitiendo valores nulos
-    account = models.ForeignKey(BankAccount, on_delete=models.CASCADE, default=None)
+    account = models.ForeignKey(BankAccount, on_delete=models.CASCADE)
 
-    timestamp = models.DateTimeField(default=timezone.now)  # Agregar este campo con el valor predeterminado
+    # Establece un valor predeterminado para timestamp
+    timestamp = models.DateTimeField(default=timezone.now)  
 
     def __str__(self):
         return f'{self.sender.user.username} -> {self.receiver.user.username} (${self.amount})'
-
